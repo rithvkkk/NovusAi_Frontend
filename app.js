@@ -1,72 +1,127 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const form = document.getElementById('analysis-form');
+    const toolkitSelector = document.getElementById('toolkit-selector');
     const configPanel = document.getElementById('config-panel');
+    const dynamicInputs = document.getElementById('dynamic-inputs');
+    const activeToolTitle = document.getElementById('active-tool-title');
+    
+    // UI state elements
     const loader = document.getElementById('loader');
     const results = document.getElementById('results');
     const progressBar = document.getElementById('progress');
     const statusText = document.getElementById('loader-status');
-    const resetBtn = document.getElementById('reset-btn');
     const exportBtn = document.getElementById('export-btn');
 
-    // Drag and Drop Elements
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-upload');
-    const gallery = document.getElementById('preview-gallery');
-
+    let activeTool = '';
     let uploadedFiles = [];
-    let radarChartInstance = null;
 
-    // --- Drag and Drop Logic --- //
-    dropZone.addEventListener('click', () => fileInput.click());
+    window.selectTool = (toolId) => {
+        activeTool = toolId;
+        toolkitSelector.style.display = 'none';
+        configPanel.classList.remove('hidden');
+        configPanel.style.display = 'block';
+        
+        // Reset state
+        uploadedFiles = [];
+        dynamicInputs.innerHTML = '';
+        
+        if (toolId === 'ads') {
+            activeToolTitle.innerHTML = '<i data-lucide="mouse-pointer-click"></i> Media Buyer AI Configuration';
+            dynamicInputs.innerHTML = `
+                <div class="input-section full-width">
+                    <h3><i data-lucide="file-video"></i> Dashboard Screenshots</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Upload Google Ads / Meta Ads / TikTok dashboards for visual extraction.</p>
+                    <div class="drop-zone" id="drop-zone">
+                        <i data-lucide="image-plus" class="drop-icon"></i>
+                        <span class="drop-title">Drop dashboard images here</span>
+                        <input type="file" id="file-upload" accept="image/png, image/jpeg" multiple hidden>
+                    </div>
+                    <div id="preview-gallery" class="preview-gallery"></div>
+                </div>
+            `;
+            setTimeout(setupDragAndDrop, 100);
+        } else if (toolId === 'seo') {
+            activeToolTitle.innerHTML = '<i data-lucide="globe"></i> SEO & CRO Architect Configuration';
+            dynamicInputs.innerHTML = `
+                <div class="input-group full-width">
+                    <label for="website-url">Target Website URL</label>
+                    <input type="url" id="website-url" placeholder="https://yourdomain.com" required>
+                </div>
+            `;
+        } else if (toolId === 'social') {
+            activeToolTitle.innerHTML = '<i data-lucide="smartphone"></i> Social Velocity AI Configuration';
+            dynamicInputs.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="full-width">
+                    <div class="input-group">
+                        <label for="ig-url">Instagram Handle/URL</label>
+                        <input type="text" id="ig-url" placeholder="@yourbrand" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="tt-url">TikTok Handle/URL</label>
+                        <input type="text" id="tt-url" placeholder="@yourbrand">
+                    </div>
+                </div>
+            `;
+        } else if (toolId === 'email') {
+            activeToolTitle.innerHTML = '<i data-lucide="mail"></i> Retention Analyst Configuration';
+            dynamicInputs.innerHTML = `
+                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="full-width">
+                    <div class="input-group">
+                        <label for="email-list">Total Subscribers</label>
+                        <input type="number" id="email-list" placeholder="e.g. 15000" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="automation-status">Core Automations Live?</label>
+                        <select id="automation-status" required>
+                            <option value="none">No flows set up</option>
+                            <option value="basic">Basic Welcome Series Only</option>
+                            <option value="advanced">Full Lifecycle Flows</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+        lucide.createIcons();
+    };
 
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
+    window.goBack = () => {
+        configPanel.style.display = 'none';
+        results.style.display = 'none';
+        toolkitSelector.style.display = 'block';
+    };
 
-    ['dragleave', 'dragend'].forEach(type => {
-        dropZone.addEventListener(type, () => {
-            dropZone.classList.remove('dragover');
+    function setupDragAndDrop() {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-upload');
+        const gallery = document.getElementById('preview-gallery');
+
+        if(!dropZone) return;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        ['dragleave', 'dragend'].forEach(type => dropZone.addEventListener(type, () => dropZone.classList.remove('dragover')));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files, gallery);
         });
-    });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFiles(e.target.files, gallery);
+        });
+    }
 
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
-            handleFiles(e.dataTransfer.files);
-        }
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) {
-            handleFiles(e.target.files);
-        }
-    });
-
-    function handleFiles(files) {
+    function handleFiles(files, gallery) {
         Array.from(files).forEach(file => {
             if (file.type.startsWith('image/')) {
-                // We only process one primary image right now to avoid huge payloads
-                if (uploadedFiles.length > 0) uploadedFiles = []; // Replace if new one added for demo simplicity
+                if (uploadedFiles.length > 0) uploadedFiles = []; 
                 gallery.innerHTML = ''; 
-                
                 uploadedFiles.push(file);
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const div = document.createElement('div');
                     div.className = 'preview-item';
-                    div.innerHTML = `
-                        <img src="${e.target.result}" alt="Dashboard Preview">
-                        <button type="button" class="remove-btn"><i data-lucide="x"></i></button>
-                    `;
-                    
-                    div.querySelector('.remove-btn').addEventListener('click', () => {
-                        div.remove();
-                        uploadedFiles = [];
-                    });
-
+                    div.innerHTML = \`<img src="\${e.target.result}" alt="Preview"><button type="button" class="remove-btn"><i data-lucide="x"></i></button>\`;
+                    div.querySelector('.remove-btn').addEventListener('click', (ev) => { ev.stopPropagation(); div.remove(); uploadedFiles = []; });
                     gallery.appendChild(div);
                     lucide.createIcons();
                 }
@@ -75,48 +130,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Analysis Logic --- //
-
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const data = {
-            industry: document.getElementById('business-type').value,
-            seo: { url: document.getElementById('website-url').value },
-            social: {
-                ig: document.getElementById('ig-url').value,
-                tt: document.getElementById('tt-url').value
-            },
-            email: {
-                listSize: parseInt(document.getElementById('email-list').value) || 0,
-                automation: document.getElementById('automation-status').value
-            }
-        };
+        const payload = { tool: activeTool, data: {} };
+
+        if (activeTool === 'seo') {
+            payload.data.url = document.getElementById('website-url').value;
+        } else if (activeTool === 'social') {
+            payload.data.ig = document.getElementById('ig-url').value;
+            payload.data.tt = document.getElementById('tt-url').value;
+        } else if (activeTool === 'email') {
+            payload.data.listSize = document.getElementById('email-list').value;
+            payload.data.automation = document.getElementById('automation-status').value;
+        }
 
         configPanel.style.display = 'none';
         loader.classList.remove('hidden');
 
-        // Start Simulated Progress Bar for UX while backend works
+        // Simulated Progress
         let progress = 10;
         progressBar.style.width = '10%';
-        statusText.textContent = "Uploading dashboard snapshots...";
-        
+        statusText.textContent = "Connecting to LLM cluster...";
         const uxInterval = setInterval(() => {
-            if (progress < 90) {
-                progress += Math.random() * 5;
-                progressBar.style.width = `${progress}%`;
-                statusText.textContent = getSpinnerText(progress);
-            }
+            if (progress < 90) { progress += 5; progressBar.style.width = \`\${progress}%\`; }
         }, 1000);
 
         try {
             const formData = new FormData();
-            formData.append('data', JSON.stringify(data));
-            
+            formData.append('payload', JSON.stringify(payload));
             const userId = localStorage.getItem('novusUserId');
             if (userId) formData.append('userId', userId);
-
-            if (uploadedFiles.length > 0) {
+            
+            if (activeTool === 'ads' && uploadedFiles.length > 0) {
                 formData.append('screenshot', uploadedFiles[0]);
             }
 
@@ -127,17 +173,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             clearInterval(uxInterval);
             progressBar.style.width = '100%';
-            statusText.textContent = "Finalizing Executive Summary...";
 
-            if (!response.ok) {
-                throw new Error("Backend parsing failed. Ensure AI Keys are active.");
-            }
-
-            const aiAnalysis = await response.json();
+            if (!response.ok) throw new Error("Analysis failed. Backend might be down.");
             
-            setTimeout(() => {
-                renderResults(aiAnalysis);
-            }, 600);
+            const aiAnalysis = await response.json();
+            setTimeout(() => { renderResults(aiAnalysis); }, 600);
 
         } catch (error) {
             clearInterval(uxInterval);
@@ -147,34 +187,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function getSpinnerText(val) {
-        if (val < 30) return "AI Vision parsing screen metrics...";
-        if (val < 50) return "Evaluating retention multipliers via Email...";
-        if (val < 70) return "Calculating Viral coefficients on Social...";
-        return "Synthesizing full marketing strategy...";
-    }
-
-    resetBtn.addEventListener('click', () => {
-        results.classList.add('hidden');
-        setTimeout(() => {
-            configPanel.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 500);
-    });
-
     exportBtn.addEventListener('click', () => {
         const element = document.getElementById('pdf-content-wrapper');
         const opt = {
             margin:       0.5,
-            filename:     'Novus-AI-Marketing-Audit.pdf',
+            filename:     'Novus-AI-Analysis.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
-
         exportBtn.innerHTML = '<i data-lucide="loader" class="spin"></i> Generating...';
-        lucide.createIcons();
-
         html2pdf().from(element).set(opt).save().then(() => {
             exportBtn.innerHTML = '<i data-lucide="download"></i> Export PDF';
             lucide.createIcons();
@@ -186,112 +208,33 @@ document.addEventListener('DOMContentLoaded', () => {
         results.style.display = 'block';
         results.classList.remove('hidden');
 
-        document.getElementById('insight-executive').innerHTML = `<strong>Neural Assessment:</strong> ${data.executiveSummary}`;
+        document.getElementById('insight-executive').innerHTML = \`<strong>AI Assessment:</strong> \${data.executiveSummary}\`;
 
-        updateCard('seo-score', 'insight-seo', data.seo);
-        updateCard('gads-score', 'insight-gads', data.gads);
-        updateCard('meta-score', 'insight-meta', data.meta);
-        updateCard('social-score', 'insight-social', data.social);
-        updateCard('email-score', 'insight-email', data.email);
-        updateCard('cro-score', 'insight-cro', data.cro);
-        
-        renderRadarChart(data);
-    }
-
-    function updateCard(scoreId, listId, moduleData) {
-        if (!moduleData) return;
-        
-        const scoreEl = document.getElementById(scoreId);
-        const listEl = document.getElementById(listId);
-
-        let parsedScore = moduleData.score.toString();
-        let rankClass = "value"; 
-        
-        // Fast regex to strip out characters if numerical
-        let numVal = parseFloat(parsedScore.replace(/[^0-9.]/g, ''));
-        if (!isNaN(numVal)) {
-            if (scoreId.includes('email')) {
-                rankClass = numVal > 2 ? "value excellent" : "value needs-work";
-            } else if (scoreId.includes('social')) {
-                rankClass = numVal > 2 ? "value excellent" : "value needs-work";
-            } else {
-                rankClass = numVal > 70 ? "value good" : "value needs-work";
-            }
-        } else {
-            // Text based formatting (High, Low)
-            if (parsedScore.toLowerCase().includes('high')) rankClass = "value excellent";
-            if (parsedScore.toLowerCase().includes('low')) rankClass = "value needs-work";
-        }
-
-        scoreEl.innerHTML = `<span class="${rankClass}">${parsedScore}</span><span class="label">Score</span>`;
-        
-        let listHTML = '';
-        if (moduleData.insights && Array.isArray(moduleData.insights)) {
-            moduleData.insights.forEach(insight => {
-                listHTML += `<li>${insight}</li>`;
-            });
-        }
-        listEl.innerHTML = listHTML;
-    }
-
-    function renderRadarChart(data) {
-        const ctx = document.getElementById('radarChart').getContext('2d');
-        
-        // Safely extract scores to 0-100 scale for plotting
-        const normalize = (rawScore, type) => {
-            let num = parseFloat(rawScore.toString().replace(/[^0-9.]/g, '')) || 0;
-            if (type === 'social') return Math.min(100, num * 10); // scale 1-10 to 100
-            if (type === 'email') return Math.min(100, num * 30);  // scale 1.5x up a bit
-            if (type === 'cro') {
-                if(rawScore.toString().toLowerCase().includes('high')) return 90;
-                if(rawScore.toString().toLowerCase().includes('med')) return 50;
-                return 20;
-            }
-            return num; // SEO, GADS, META are generally /100
+        const metricTitle = document.getElementById('dynamic-metric-title');
+        const scoreBox = document.getElementById('dynamic-score');
+        const insightsList = document.getElementById('insight-dynamic');
+        const icon = document.getElementById('dynamic-icon');
+        const resultThemeMap = {
+            'ads': { title: 'Media Buying Insights', icon: 'mouse-pointer-click', colorClass: 'icon-gads' },
+            'seo': { title: 'Technical SEO Audit', icon: 'globe', colorClass: 'icon-seo' },
+            'social': { title: 'Viral Coefficient Analysis', icon: 'smartphone', colorClass: 'icon-social' },
+            'email': { title: 'Lifecycle Flow Analysis', icon: 'mail', colorClass: 'icon-mail' }
         };
 
-        const scores = [
-            normalize(data.seo?.score, 'seo'),
-            normalize(data.gads?.score, 'gads'),
-            normalize(data.meta?.score, 'meta'),
-            normalize(data.social?.score, 'social'),
-            normalize(data.email?.score, 'email'),
-            normalize(data.cro?.score, 'cro')
-        ];
+        const theme = resultThemeMap[activeTool];
+        icon.setAttribute('data-lucide', theme.icon);
+        icon.className = theme.colorClass;
+        metricTitle.innerText = theme.title;
 
-        if (radarChartInstance) radarChartInstance.destroy();
+        let parsedScore = data.analysisData?.score || "N/A";
+        scoreBox.innerHTML = \`<span class="value">\${parsedScore}</span><span class="label">Score</span>\`;
 
-        radarChartInstance = new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: ['SEO', 'Google Ads', 'Meta Ads', 'Social Velocity', 'Email Retent.', 'CRO'],
-                datasets: [{
-                    label: 'Marketing Pillar Health',
-                    data: scores,
-                    backgroundColor: 'rgba(56, 189, 248, 0.2)', // Neon blue tint
-                    borderColor: 'rgba(56, 189, 248, 1)',
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#0ea5e9',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#0ea5e9'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        pointLabels: { color: '#94a3b8', font: { size: 12, family: "'Inter', sans-serif" } },
-                        ticks: { display: false, min: 0, max: 100 }
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
+        let listHTML = '';
+        if (data.analysisData?.insights) {
+            data.analysisData.insights.forEach(insight => { listHTML += \`<li>\${insight}</li>\`; });
+        }
+        insightsList.innerHTML = listHTML;
+
+        lucide.createIcons();
     }
-
 });
