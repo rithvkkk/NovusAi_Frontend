@@ -37,49 +37,70 @@
 
   <!-- Tab Navigation -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="ads">
-      <span class="material-symbols-outlined tab-icon">campaign</span>Media Buyer AI
+    <button class="tab-btn active" data-tab="google">
+      <span class="material-symbols-outlined tab-icon">google</span>Google Ads Analytics
+    </button>
+    <button class="tab-btn" data-tab="meta">
+      <span class="material-symbols-outlined tab-icon">query_stats</span>Meta Ads Auditor
     </button>
     <button class="tab-btn" data-tab="seo">
-      <span class="material-symbols-outlined tab-icon">travel_explore</span>SEO / CRO Architect
+      <span class="material-symbols-outlined tab-icon">travel_explore</span>SEO / CRO Inspector
     </button>
-    <button class="tab-btn" data-tab="social">
-      <span class="material-symbols-outlined tab-icon">smartphone</span>Social Velocity
-    </button>
-    <button class="tab-btn" data-tab="email">
-      <span class="material-symbols-outlined tab-icon">mail</span>Retention Analyst
+    <button class="tab-btn" data-tab="portfolio">
+      <span class="material-symbols-outlined tab-icon">design_services</span>Portfolio Assessment
     </button>
   </div>
 
-  <!-- ======== TAB 1: MEDIA BUYER ======== -->
-  <div class="tab-panel active" id="panel-ads">
+  <!-- ======== TAB 1: GOOGLE ADS ======== -->
+  <div class="tab-panel active" id="panel-google">
     <div class="input-area">
-      <label>Upload Ads Dashboard Screenshots for analysis</label>
-      <div class="upload-zone" id="uploadZone">
+      <label>Upload Google Ads Dashboard or Campaign Metrics (Screenshots)</label>
+      <div class="upload-zone" id="uploadZoneGoogle">
         <span class="material-symbols-outlined upload-icon">cloud_upload</span>
         <p>Drag & drop screenshots here, or <strong style="color:var(--blue-light)">click to browse</strong></p>
         <p class="upload-hint">Accepts PNG, JPG, WEBP</p>
-        <input type="file" id="fileInput" accept="image/*" hidden/>
+        <input type="file" id="fileInputGoogle" accept="image/*" hidden/>
       </div>
-      <div class="upload-previews" id="uploadPreviews"></div>
+      <div class="upload-previews" id="uploadPreviewsGoogle"></div>
       
       <div class="input-row" style="margin-top: 1rem;">
-        <input type="text" class="input-field" id="adsUrl" placeholder="Optional: Target landing page URL"/>
-        <button class="analyze-btn" id="analyze-ads" onclick="runAnalysis('ads')">
+        <input type="text" class="input-field" id="googleUrl" placeholder="Optional: Target landing page URL for context"/>
+        <button class="analyze-btn" id="analyze-google" onclick="runAnalysis('google')">
           <div class="spinner"></div>
           <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
         </button>
       </div>
     </div>
-
-    <!-- Results injected dynamically -->
-    <div class="results-area" id="results-ads"></div>
+    <div class="results-area" id="results-google"></div>
   </div>
 
-  <!-- ======== TAB 2: SEO / CRO ======== -->
+  <!-- ======== TAB 2: META ADS ======== -->
+  <div class="tab-panel" id="panel-meta">
+    <div class="input-area">
+      <label>Upload Facebook / Instagram Ads Manager Metrics</label>
+      <div class="upload-zone" id="uploadZoneMeta">
+        <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+        <p>Drag & drop screenshots here, or <strong style="color:var(--blue-light)">click to browse</strong></p>
+        <p class="upload-hint">Accepts PNG, JPG, WEBP</p>
+        <input type="file" id="fileInputMeta" accept="image/*" hidden/>
+      </div>
+      <div class="upload-previews" id="uploadPreviewsMeta"></div>
+      
+      <div class="input-row" style="margin-top: 1rem;">
+        <input type="text" class="input-field" id="metaUrl" placeholder="Optional: Instagram Handle Data (@handle)"/>
+        <button class="analyze-btn" id="analyze-meta" onclick="runAnalysis('meta')">
+          <div class="spinner"></div>
+          <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
+        </button>
+      </div>
+    </div>
+    <div class="results-area" id="results-meta"></div>
+  </div>
+
+  <!-- ======== TAB 3: SEO ======== -->
   <div class="tab-panel" id="panel-seo">
     <div class="input-area">
-      <label>Enter URL for deep technical crawl</label>
+      <label>Enter URL for deep technical SEO / Local Pack analysis</label>
       <div class="input-row">
         <input type="text" class="input-field" id="seoUrl" placeholder="https://example.com"/>
         <button class="analyze-btn" id="analyze-seo" onclick="runAnalysis('seo')">
@@ -91,36 +112,27 @@
     <div class="results-area" id="results-seo"></div>
   </div>
 
-  <!-- ======== TAB 3: SOCIAL VELOCITY ======== -->
-  <div class="tab-panel" id="panel-social">
+  <!-- ======== TAB 4: PORTFOLIO ======== -->
+  <div class="tab-panel" id="panel-portfolio">
     <div class="input-area">
-      <label>Enter Social Handles for momentum analysis</label>
-      <div class="input-row">
-        <input type="text" class="input-field" id="igHandle" placeholder="Instagram Handle (e.g. @glamluxe)"/>
-        <input type="text" class="input-field" id="ttHandle" placeholder="TikTok Handle"/>
-        <button class="analyze-btn" id="analyze-social" onclick="runAnalysis('social')">
+      <label>Upload Creative Assets or Design Portfolio (Screenshots)</label>
+      <div class="upload-zone" id="uploadZonePortfolio">
+        <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+        <p>Drag & drop assets here, or <strong style="color:var(--blue-light)">click to browse</strong></p>
+        <p class="upload-hint">Accepts Design Examples, Ad Creatives, Web Rescreenshots</p>
+        <input type="file" id="fileInputPortfolio" accept="image/*" hidden/>
+      </div>
+      <div class="upload-previews" id="uploadPreviewsPortfolio"></div>
+      
+      <div class="input-row" style="margin-top: 1rem;">
+        <input type="text" class="input-field" id="portfolioUrl" placeholder="Optional: Behance / Dribbble / Agency URL"/>
+        <button class="analyze-btn" id="analyze-portfolio" onclick="runAnalysis('portfolio')">
           <div class="spinner"></div>
           <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
         </button>
       </div>
     </div>
-    <div class="results-area" id="results-social"></div>
-  </div>
-
-  <!-- ======== TAB 4: RETENTION ======== -->
-  <div class="tab-panel" id="panel-email">
-    <div class="input-area">
-      <label>Provide Email List Parameters</label>
-      <div class="input-row">
-        <input type="number" class="input-field" id="listSize" placeholder="Total List Size (e.g. 50000)"/>
-        <input type="text" class="input-field" id="automationStatus" placeholder="Flow Status (e.g. Basic flows active)"/>
-        <button class="analyze-btn" id="analyze-email" onclick="runAnalysis('email')">
-          <div class="spinner"></div>
-          <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
-        </button>
-      </div>
-    </div>
-    <div class="results-area" id="results-email"></div>
+    <div class="results-area" id="results-portfolio"></div>
   </div>
 
 </div><!-- /dashboard-wrap -->
