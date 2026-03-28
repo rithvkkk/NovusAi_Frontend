@@ -1,140 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novus AI | Performance Marketing & SEO Agent</title>
-    <meta name="description" content="AI-powered analysis and recommendations for Google Ads, Meta Ads, and SEO.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Novus AI | Agent Portal</title>
+  <meta name="description" content="AI-powered analysis and recommendations for Google Ads, Meta Ads, and SEO.">
+  <link rel="icon" type="image/png" href="logo.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body>
-    
-    <div class="background-effects">
-        <div class="glow-orb orb-1"></div>
-        <div class="glow-orb orb-2"></div>
-        <div class="grid-overlay"></div>
+<body class="agent-body">
+
+<!-- ============ DASHBOARD ============ -->
+<div class="dashboard-wrap active" id="dashboard">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="brand" style="font-size: 1.2rem;">NOVUS AI</span>
+      <span class="sep">|</span>
+      <span class="portal-label">Performance Specialist</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-user">
+        <div class="avatar" id="userAvatar">A</div>
+        <span id="userName">Admin</span>
+      </div>
+      <button class="btn-logout" id="logoutBtn" onclick="window.location.reload()">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px;">logout</span>Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="ads">
+      <span class="material-symbols-outlined tab-icon">campaign</span>Media Buyer AI
+    </button>
+    <button class="tab-btn" data-tab="seo">
+      <span class="material-symbols-outlined tab-icon">travel_explore</span>SEO / CRO Architect
+    </button>
+    <button class="tab-btn" data-tab="social">
+      <span class="material-symbols-outlined tab-icon">smartphone</span>Social Velocity
+    </button>
+    <button class="tab-btn" data-tab="email">
+      <span class="material-symbols-outlined tab-icon">mail</span>Retention Analyst
+    </button>
+  </div>
+
+  <!-- ======== TAB 1: MEDIA BUYER ======== -->
+  <div class="tab-panel active" id="panel-ads">
+    <div class="input-area">
+      <label>Upload Ads Dashboard Screenshots for analysis</label>
+      <div class="upload-zone" id="uploadZone">
+        <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+        <p>Drag & drop screenshots here, or <strong style="color:var(--blue-light)">click to browse</strong></p>
+        <p class="upload-hint">Accepts PNG, JPG, WEBP</p>
+        <input type="file" id="fileInput" accept="image/*" hidden/>
+      </div>
+      <div class="upload-previews" id="uploadPreviews"></div>
+      
+      <div class="input-row" style="margin-top: 1rem;">
+        <input type="text" class="input-field" id="adsUrl" placeholder="Optional: Target landing page URL"/>
+        <button class="analyze-btn" id="analyze-ads" onclick="runAnalysis('ads')">
+          <div class="spinner"></div>
+          <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
+        </button>
+      </div>
     </div>
 
-    <main class="app-container">
-        
-        <!-- Header -->
-        <header class="app-header">
-            <div class="logo-container">
-                <i data-lucide="cpu" class="logo-icon"></i>
-                <h1 class="logo-text">NOVUS AI <span class="badge">AGENT</span></h1>
-            </div>
-            <p class="subtitle">Neural analysis of your Google Ads, Meta Ads, and SEO performance.</p>
-        </header>
+    <!-- Results injected dynamically -->
+    <div class="results-area" id="results-ads"></div>
+  </div>
 
-        <!-- Toolkit Selector -->
-        <section class="toolkit-selector" id="toolkit-selector">
-            <h2 class="section-title"><i data-lucide="grid-3x3"></i> Select AI Agent</h2>
-            <div class="toolkit-grid">
-                <div class="tool-card glass-panel" onclick="selectTool('ads')">
-                    <i data-lucide="mouse-pointer-click" class="neon-icon"></i>
-                    <h3>Media Buyer AI</h3>
-                    <p>Analyze Google & Meta Ads dashboards for ROAS & creative fatigue.</p>
-                </div>
-                <div class="tool-card glass-panel" onclick="selectTool('seo')">
-                    <i data-lucide="globe" class="neon-icon"></i>
-                    <h3>SEO & CRO Architect</h3>
-                    <p>Audit site speed, conversion friction, and organic structure.</p>
-                </div>
-                <div class="tool-card glass-panel" onclick="selectTool('social')">
-                    <i data-lucide="smartphone" class="neon-icon"></i>
-                    <h3>Social Velocity AI</h3>
-                    <p>Gauge viral coefficient and organic momentum on IG & TikTok.</p>
-                </div>
-                <div class="tool-card glass-panel" onclick="selectTool('email')">
-                    <i data-lucide="mail" class="neon-icon"></i>
-                    <h3>Retention Analyst AI</h3>
-                    <p>Evaluate email lifecycle flows and LTV multipliers.</p>
-                </div>
-            </div>
-        </section>
+  <!-- ======== TAB 2: SEO / CRO ======== -->
+  <div class="tab-panel" id="panel-seo">
+    <div class="input-area">
+      <label>Enter URL for deep technical crawl</label>
+      <div class="input-row">
+        <input type="text" class="input-field" id="seoUrl" placeholder="https://example.com"/>
+        <button class="analyze-btn" id="analyze-seo" onclick="runAnalysis('seo')">
+          <div class="spinner"></div>
+          <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
+        </button>
+      </div>
+    </div>
+    <div class="results-area" id="results-seo"></div>
+  </div>
 
-        <!-- Dynamic Configuration Panel -->
-        <section class="config-panel glass-panel hidden" id="config-panel">
-            <div class="panel-header" style="display:flex; align-items:center; gap:1rem; margin-bottom: 2rem;">
-                <button type="button" class="back-btn btn-secondary" onclick="goBack()" style="padding: 0.5rem 1rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background: transparent; color: white; cursor: pointer; display:flex; align-items:center; gap:0.5rem;"><i data-lucide="arrow-left"></i> Back</button>
-                <h2 id="active-tool-title" style="margin:0;"><i data-lucide="sliders-horizontal"></i> Agent Configuration</h2>
-            </div>
-            
-            <form id="analysis-form">
-                <div class="input-grid" id="dynamic-inputs">
-                    <!-- Injected by JS based on selected tool -->
-                </div>
-                
-                <div class="action-container" style="margin-top: 2rem;">
-                    <button type="submit" class="btn-primary" id="analyze-btn">
-                        <i data-lucide="brain-circuit"></i>
-                        <span>Initialize Neural Analysis</span>
-                    </button>
-                </div>
-            </form>
-        </section>
+  <!-- ======== TAB 3: SOCIAL VELOCITY ======== -->
+  <div class="tab-panel" id="panel-social">
+    <div class="input-area">
+      <label>Enter Social Handles for momentum analysis</label>
+      <div class="input-row">
+        <input type="text" class="input-field" id="igHandle" placeholder="Instagram Handle (e.g. @glamluxe)"/>
+        <input type="text" class="input-field" id="ttHandle" placeholder="TikTok Handle"/>
+        <button class="analyze-btn" id="analyze-social" onclick="runAnalysis('social')">
+          <div class="spinner"></div>
+          <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
+        </button>
+      </div>
+    </div>
+    <div class="results-area" id="results-social"></div>
+  </div>
 
-        <!-- Loading Overlay -->
-        <div class="loader-overlay hidden" id="loader">
-            <div class="scanner-container">
-                <div class="scanner-ring"></div>
-                <i data-lucide="scan-line" class="scanner-icon"></i>
-            </div>
-            <h3 class="loader-text pulse-text">Agent Synthesizing Data Vectors...</h3>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progress"></div>
-            </div>
-            <p class="loader-status" id="loader-status">Initializing LLM parameters...</p>
-        </div>
+  <!-- ======== TAB 4: RETENTION ======== -->
+  <div class="tab-panel" id="panel-email">
+    <div class="input-area">
+      <label>Provide Email List Parameters</label>
+      <div class="input-row">
+        <input type="number" class="input-field" id="listSize" placeholder="Total List Size (e.g. 50000)"/>
+        <input type="text" class="input-field" id="automationStatus" placeholder="Flow Status (e.g. Basic flows active)"/>
+        <button class="analyze-btn" id="analyze-email" onclick="runAnalysis('email')">
+          <div class="spinner"></div>
+          <span class="btn-text"><span class="material-symbols-outlined" style="font-size:16px">auto_awesome</span> Analyze</span>
+        </button>
+      </div>
+    </div>
+    <div class="results-area" id="results-email"></div>
+  </div>
 
-        <!-- Results Dashboard (Dynamic) -->
-        <div id="results" class="hidden">
-            <header class="results-header">
-                <h2><i data-lucide="bar-chart-3"></i> Synthesis Complete.</h2>
-                <div class="button-group">
-                    <button class="btn-secondary" id="reset-btn" onclick="goBack()"><i data-lucide="rotate-ccw"></i> New Audit</button>
-                    <button class="btn-primary" id="export-btn"><i data-lucide="download"></i> Export PDF</button>
-                </div>
-            </header>
+</div><!-- /dashboard-wrap -->
 
-            <div id="pdf-content-wrapper"> 
-                <div class="summary-card glass-panel executive">
-                    <i data-lucide="brain-circuit" class="neon-icon"></i>
-                    <h2 id="dynamic-result-title">Neural Executive Summary</h2>
-                    <p id="insight-executive">Analyzing data points...</p>
-                </div>
-                
-                <div class="results-grid-single" style="display:grid; grid-template-columns:1fr; gap:1.5rem; margin-top:1.5rem;">
-                    <!-- Single Metric Card -->
-                    <div class="result-card glass-panel">
-                        <div class="card-header">
-                            <i data-lucide="target" id="dynamic-icon" class="icon-seo"></i>
-                            <h3 id="dynamic-metric-title">Performance Score</h3>
-                        </div>
-                        <div class="card-metric" id="dynamic-score">
-                            <span class="value">--</span>
-                            <span class="label">Primary Metric</span>
-                        </div>
-                        <ul class="action-list" id="insight-dynamic">
-                            <li>Awaiting data...</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
+<!-- RAG Loading Indicator (Reused from Novus Devv) -->
+<div class="rag-badge" id="ragBadge">
+  <span class="material-symbols-outlined">network_node</span>
+  <span id="ragText">Connecting to neural core...</span>
+</div>
 
-    </main>
-
-    <script src="app.js"></script>
-    <script>
-        lucide.createIcons();
-    </script>
+<script src="app.js"></script>
 </body>
 </html>

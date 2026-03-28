@@ -1,160 +1,90 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const form = document.getElementById('analysis-form');
-    const toolkitSelector = document.getElementById('toolkit-selector');
-    const configPanel = document.getElementById('config-panel');
-    const dynamicInputs = document.getElementById('dynamic-inputs');
-    const activeToolTitle = document.getElementById('active-tool-title');
-    
-    // UI state elements
-    const loader = document.getElementById('loader');
-    const results = document.getElementById('results');
-    const progressBar = document.getElementById('progress');
-    const statusText = document.getElementById('loader-status');
-    const exportBtn = document.getElementById('export-btn');
+    // === TAB NAVIGATION ===
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
 
-    let activeTool = '';
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanels.forEach(p => p.classList.remove('active'));
+            
+            btn.classList.add('active');
+            const targetTab = btn.getAttribute('data-tab');
+            document.getElementById(`panel-${targetTab}`).classList.add('active');
+        });
+    });
+
+    // === FILE UPLOAD LOGIC (MEDIA BUYER TAB) ===
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadPreviews = document.getElementById('uploadPreviews');
     let uploadedFiles = [];
 
-    window.selectTool = (toolId) => {
-        activeTool = toolId;
-        toolkitSelector.style.display = 'none';
-        configPanel.classList.remove('hidden');
-        configPanel.style.display = 'block';
-        
-        // Reset state
-        uploadedFiles = [];
-        dynamicInputs.innerHTML = '';
-        
-        if (toolId === 'ads') {
-            activeToolTitle.innerHTML = '<i data-lucide="mouse-pointer-click"></i> Media Buyer AI Configuration';
-            dynamicInputs.innerHTML = `
-                <div class="input-section full-width">
-                    <h3><i data-lucide="file-video"></i> Dashboard Screenshots</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Upload Google Ads / Meta Ads / TikTok dashboards for visual extraction.</p>
-                    <div class="drop-zone" id="drop-zone">
-                        <i data-lucide="image-plus" class="drop-icon"></i>
-                        <span class="drop-title">Drop dashboard images here</span>
-                        <input type="file" id="file-upload" accept="image/png, image/jpeg" multiple hidden>
-                    </div>
-                    <div id="preview-gallery" class="preview-gallery"></div>
-                </div>
-            `;
-            setTimeout(setupDragAndDrop, 100);
-        } else if (toolId === 'seo') {
-            activeToolTitle.innerHTML = '<i data-lucide="globe"></i> SEO & CRO Architect Configuration';
-            dynamicInputs.innerHTML = `
-                <div class="input-group full-width">
-                    <label for="website-url">Target Website URL</label>
-                    <input type="url" id="website-url" placeholder="https://yourdomain.com" required>
-                </div>
-            `;
-        } else if (toolId === 'social') {
-            activeToolTitle.innerHTML = '<i data-lucide="smartphone"></i> Social Velocity AI Configuration';
-            dynamicInputs.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="full-width">
-                    <div class="input-group">
-                        <label for="ig-url">Instagram Handle/URL</label>
-                        <input type="text" id="ig-url" placeholder="@yourbrand" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="tt-url">TikTok Handle/URL</label>
-                        <input type="text" id="tt-url" placeholder="@yourbrand">
-                    </div>
-                </div>
-            `;
-        } else if (toolId === 'email') {
-            activeToolTitle.innerHTML = '<i data-lucide="mail"></i> Retention Analyst Configuration';
-            dynamicInputs.innerHTML = `
-                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="full-width">
-                    <div class="input-group">
-                        <label for="email-list">Total Subscribers</label>
-                        <input type="number" id="email-list" placeholder="e.g. 15000" min="0" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="automation-status">Core Automations Live?</label>
-                        <select id="automation-status" required>
-                            <option value="none">No flows set up</option>
-                            <option value="basic">Basic Welcome Series Only</option>
-                            <option value="advanced">Full Lifecycle Flows</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-        }
-        lucide.createIcons();
-    };
-
-    window.goBack = () => {
-        configPanel.style.display = 'none';
-        results.style.display = 'none';
-        toolkitSelector.style.display = 'block';
-    };
-
-    function setupDragAndDrop() {
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-upload');
-        const gallery = document.getElementById('preview-gallery');
-
-        if(!dropZone) return;
-
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        ['dragleave', 'dragend'].forEach(type => dropZone.addEventListener(type, () => dropZone.classList.remove('dragover')));
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault(); dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files, gallery);
+    if (uploadZone) {
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
         });
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) handleFiles(e.target.files, gallery);
-        });
+        fileInput.addEventListener('change', e => handleFiles(e.target.files));
     }
 
-    function handleFiles(files, gallery) {
+    function handleFiles(files) {
         Array.from(files).forEach(file => {
-            if (file.type.startsWith('image/')) {
-                if (uploadedFiles.length > 0) uploadedFiles = []; 
-                gallery.innerHTML = ''; 
-                uploadedFiles.push(file);
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const div = document.createElement('div');
-                    div.className = 'preview-item';
-                    div.innerHTML = \`<img src="\${e.target.result}" alt="Preview"><button type="button" class="remove-btn"><i data-lucide="x"></i></button>\`;
-                    div.querySelector('.remove-btn').addEventListener('click', (ev) => { ev.stopPropagation(); div.remove(); uploadedFiles = []; });
-                    gallery.appendChild(div);
-                    lucide.createIcons();
-                }
-                reader.readAsDataURL(file);
-            }
+            if (!file.type.startsWith('image/')) return;
+            uploadedFiles = []; // For this demo we just keep 1 file for now to avoid large payloads
+            uploadPreviews.innerHTML = ''; 
+            
+            uploadedFiles.push(file);
+            const reader = new FileReader();
+            reader.onload = e => {
+                const wrap = document.createElement('div');
+                wrap.className = 'upload-preview';
+                wrap.style.cssText = 'position:relative; display:inline-block; margin-top:10px; border-radius:8px; overflow:hidden; border:1px solid var(--border);';
+                wrap.innerHTML = `<img src="${e.target.result}" style="max-height: 100px; display:block;" alt="screenshot"/>
+                <button type="button" onclick="this.parentElement.remove(); window.uploadedFiles=[];" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.5); color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;">✗</button>`;
+                uploadPreviews.appendChild(wrap);
+            };
+            reader.readAsDataURL(file);
         });
     }
+    window.uploadedFiles = uploadedFiles; // make accessible for inline onclick if needed
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // === ANALYSIS LOGIC ===
+    window.runAnalysis = async (toolId) => {
+        const btn = document.getElementById(`analyze-${toolId}`);
+        const resultsArea = document.getElementById(`results-${toolId}`);
+        const ragBadge = document.getElementById('ragBadge');
 
-        const payload = { tool: activeTool, data: {} };
-
-        if (activeTool === 'seo') {
-            payload.data.url = document.getElementById('website-url').value;
-        } else if (activeTool === 'social') {
-            payload.data.ig = document.getElementById('ig-url').value;
-            payload.data.tt = document.getElementById('tt-url').value;
-        } else if (activeTool === 'email') {
-            payload.data.listSize = document.getElementById('email-list').value;
-            payload.data.automation = document.getElementById('automation-status').value;
+        // Extract Payload based on tool string
+        const payload = { tool: toolId, data: {} };
+        if (toolId === 'ads') {
+            payload.data.url = document.getElementById('adsUrl').value;
+        } else if (toolId === 'seo') {
+            const url = document.getElementById('seoUrl').value;
+            if(!url) return alert("Please enter a URL.");
+            payload.data.url = url;
+        } else if (toolId === 'social') {
+            payload.data.ig = document.getElementById('igHandle').value;
+            payload.data.tt = document.getElementById('ttHandle').value;
+            if(!payload.data.ig && !payload.data.tt) return alert("Please enter at least one handle.");
+        } else if (toolId === 'email') {
+            payload.data.listSize = document.getElementById('listSize').value;
+            payload.data.automation = document.getElementById('automationStatus').value;
+            if(!payload.data.listSize) return alert("Please enter list size.");
         }
 
-        configPanel.style.display = 'none';
-        loader.classList.remove('hidden');
-
-        // Simulated Progress
-        let progress = 10;
-        progressBar.style.width = '10%';
-        statusText.textContent = "Connecting to LLM cluster...";
-        const uxInterval = setInterval(() => {
-            if (progress < 90) { progress += 5; progressBar.style.width = \`\${progress}%\`; }
-        }, 1000);
+        // UI Loading State
+        btn.classList.add('loading');
+        btn.disabled = true;
+        resultsArea.classList.remove('show');
+        
+        // Show Global RAG Badge
+        ragBadge.classList.add('show');
 
         try {
             const formData = new FormData();
@@ -162,79 +92,70 @@ document.addEventListener('DOMContentLoaded', () => {
             const userId = localStorage.getItem('novusUserId');
             if (userId) formData.append('userId', userId);
             
-            if (activeTool === 'ads' && uploadedFiles.length > 0) {
-                formData.append('screenshot', uploadedFiles[0]);
+            if (toolId === 'ads' && window.uploadedFiles && window.uploadedFiles.length > 0) {
+                formData.append('screenshot', window.uploadedFiles[0]);
             }
 
+            // Call Backend
             const response = await fetch('http://localhost:3000/api/analyze', {
                 method: 'POST',
                 body: formData
             });
 
-            clearInterval(uxInterval);
-            progressBar.style.width = '100%';
-
             if (!response.ok) throw new Error("Analysis failed. Backend might be down.");
-            
             const aiAnalysis = await response.json();
-            setTimeout(() => { renderResults(aiAnalysis); }, 600);
+            
+            renderResults(toolId, aiAnalysis, resultsArea);
 
         } catch (error) {
-            clearInterval(uxInterval);
+            console.error("Analysis Error:", error);
             alert("Analysis Error: " + error.message);
-            loader.classList.add('hidden');
-            configPanel.style.display = 'block';
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            ragBadge.classList.remove('show');
         }
-    });
+    };
 
-    exportBtn.addEventListener('click', () => {
-        const element = document.getElementById('pdf-content-wrapper');
-        const opt = {
-            margin:       0.5,
-            filename:     'Novus-AI-Analysis.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        exportBtn.innerHTML = '<i data-lucide="loader" class="spin"></i> Generating...';
-        html2pdf().from(element).set(opt).save().then(() => {
-            exportBtn.innerHTML = '<i data-lucide="download"></i> Export PDF';
-            lucide.createIcons();
-        });
-    });
+    function renderResults(toolId, data, resultsArea) {
+        
+        const insightsHtml = data.analysisData?.insights?.map(insight => 
+            `<li style="padding: 12px 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; display:flex; align-items:flex-start; gap: 10px;">
+                <span class="material-symbols-outlined" style="color: var(--blue); font-size: 1.2rem;">bolt</span>
+                <span style="color: var(--text-secondary); line-height: 1.5; font-size: 0.9rem;">${insight}</span>
+            </li>`
+        ).join('') || '<li>No insights generated.</li>';
 
-    function renderResults(data) {
-        loader.classList.add('hidden');
-        results.style.display = 'block';
-        results.classList.remove('hidden');
+        const html = `
+            <div style="margin-top: 30px; animation: fadeUp 0.4s ease forwards;">
+                <div class="summary-card glass-panel" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;">
+                    <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 16px;">
+                        <span class="material-symbols-outlined" style="color: var(--blue); font-size: 1.8rem;">psychology</span>
+                        <h2 style="margin:0; font-size: 1.2rem; font-weight: 600;">Neural Executive Summary</h2>
+                    </div>
+                    <p style="color: var(--text-secondary); line-height: 1.6; font-size: 0.95rem;">${data.executiveSummary}</p>
+                </div>
 
-        document.getElementById('insight-executive').innerHTML = \`<strong>AI Assessment:</strong> \${data.executiveSummary}\`;
+                <div class="kpi-grid" style="margin-top: 20px;">
+                    <div class="kpi-card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align:center;">
+                        <div class="kpi-label" style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Primary Analysis Score</div>
+                        <div class="kpi-value" style="font-size: 2.2rem; font-weight: 700; color: #fff; font-family: 'Outfit', sans-serif;">${data.analysisData?.score || 'N/A'}</div>
+                    </div>
+                </div>
 
-        const metricTitle = document.getElementById('dynamic-metric-title');
-        const scoreBox = document.getElementById('dynamic-score');
-        const insightsList = document.getElementById('insight-dynamic');
-        const icon = document.getElementById('dynamic-icon');
-        const resultThemeMap = {
-            'ads': { title: 'Media Buying Insights', icon: 'mouse-pointer-click', colorClass: 'icon-gads' },
-            'seo': { title: 'Technical SEO Audit', icon: 'globe', colorClass: 'icon-seo' },
-            'social': { title: 'Viral Coefficient Analysis', icon: 'smartphone', colorClass: 'icon-social' },
-            'email': { title: 'Lifecycle Flow Analysis', icon: 'mail', colorClass: 'icon-mail' }
-        };
+                <div class="chart-card" style="margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;">
+                    <div class="card-header" style="margin-bottom: 20px;">
+                        <h3 class="card-title" style="margin:0; font-size: 1.1rem; font-weight: 600;">Actionable AI Insights</h3>
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        ${insightsHtml}
+                    </ul>
+                </div>
+            </div>
+        `;
 
-        const theme = resultThemeMap[activeTool];
-        icon.setAttribute('data-lucide', theme.icon);
-        icon.className = theme.colorClass;
-        metricTitle.innerText = theme.title;
-
-        let parsedScore = data.analysisData?.score || "N/A";
-        scoreBox.innerHTML = \`<span class="value">\${parsedScore}</span><span class="label">Score</span>\`;
-
-        let listHTML = '';
-        if (data.analysisData?.insights) {
-            data.analysisData.insights.forEach(insight => { listHTML += \`<li>\${insight}</li>\`; });
-        }
-        insightsList.innerHTML = listHTML;
-
-        lucide.createIcons();
+        resultsArea.innerHTML = html;
+        resultsArea.classList.add('show');
     }
+
 });
