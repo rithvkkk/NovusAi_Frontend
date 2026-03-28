@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novus AI | Performance Marketing & SEO Agent</title>
+    <meta name="description" content="AI-powered analysis and recommendations for Google Ads, Meta Ads, and SEO.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="grid-overlay"></div>
+    </div>
+
+    <main class="app-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-container">
+                <i data-lucide="cpu" class="logo-icon"></i>
+                <h1 class="logo-text">NOVUS AI <span class="badge">AGENT</span></h1>
+            </div>
+            <p class="subtitle">Neural analysis of your Google Ads, Meta Ads, and SEO performance.</p>
+        </header>
+
+        <!-- Configuration Panel -->
+        <section class="config-panel glass-panel" id="config-panel">
+            <h2 class="section-title"><i data-lucide="sliders-horizontal"></i> Data Input Matrix</h2>
+            
+            <form id="analysis-form">
+                <div class="input-grid">
+                    
+                    <!-- Business Context -->
+                    <div class="input-group full-width">
+                        <label for="business-type">Business Archetype</label>
+                        <select id="business-type" required>
+                            <option value="">Select Primary Business Model...</option>
+                            <option value="ecommerce">E-Commerce / Direct-to-Consumer</option>
+                            <option value="saas">SaaS / B2B Technology</option>
+                            <option value="local">Local Service / Hospitality</option>
+                            <option value="medical">Medical / Health</option>
+                            <option value="agency">Agency / Consultation</option>
+                        </select>
+                    </div>
+
+                    <!-- SEO & CRO Inputs -->
+                    <div class="input-section full-width">
+                        <h3><i data-lucide="globe"></i> Web Properties (SEO & CRO)</h3>
+                        <div class="input-group">
+                            <label for="website-url">Primary Website URL</label>
+                            <input type="url" id="website-url" placeholder="https://yourdomain.com" required>
+                        </div>
+                    </div>
+
+                    <!-- Organic Social Media -->
+                    <div class="input-section full-width">
+                        <h3><i data-lucide="smartphone"></i> Organic Social Presence</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="input-group">
+                                <label for="ig-url">Instagram Handle/URL</label>
+                                <input type="text" id="ig-url" placeholder="@yourbrand">
+                            </div>
+                            <div class="input-group">
+                                <label for="tt-url">TikTok Handle/URL</label>
+                                <input type="text" id="tt-url" placeholder="@yourbrand">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email & Lifecycle -->
+                    <div class="input-section full-width">
+                        <h3><i data-lucide="mail"></i> Retention & Lifecycle</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="input-group">
+                                <label for="email-list">Total Email Subscribers</label>
+                                <input type="number" id="email-list" placeholder="e.g. 15000" min="0">
+                            </div>
+                            <div class="input-group">
+                                <label for="automation-status">Core Automations Live?</label>
+                                <select id="automation-status">
+                                    <option value="none">No flows set up</option>
+                                    <option value="basic">Basic Welcome Series Only</option>
+                                    <option value="advanced">Full Lifecycle Flows (Abandoned Cart, Winback)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Ingestion Section -->
+                    <div class="input-section full-width">
+                        <h3><i data-lucide="file-video"></i> Performance Dashboard Ingestion</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Upload screenshots of Google Ads, Meta Ads, TikTok Ads, Klaviyo, or Shopify analytics for neural OCR extraction.</p>
+                        
+                        <div class="drop-zone" id="drop-zone">
+                            <i data-lucide="image-plus" class="drop-icon"></i>
+                            <span class="drop-title">Drag & Drop Dashboard Screenshots Here</span>
+                            <span class="drop-subtitle">or click to browse local files</span>
+                            <input type="file" id="file-upload" accept="image/png, image/jpeg" multiple hidden>
+                        </div>
+                        
+                        <div id="preview-gallery" class="preview-gallery"></div>
+                    </div>
+
+                </div>
+
+                <div class="action-container">
+                    <button type="submit" class="btn-primary" id="analyze-btn">
+                        <i data-lucide="brain-circuit"></i>
+                        <span>Initialize Neural Analysis</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Loading Overlay -->
+        <div class="loader-overlay hidden" id="loader">
+            <div class="scanner-container">
+                <div class="scanner-ring"></div>
+                <i data-lucide="scan-line" class="scanner-icon"></i>
+            </div>
+            <h3 class="loader-text pulse-text">Agent Synthesizing Data Vectors...</h3>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress"></div>
+            </div>
+            <p class="loader-status" id="loader-status">Initializing LLM parameters...</p>
+        </div>
+
+        <!-- Results Dashboard -->
+        <div id="results" class="hidden">
+            <header class="results-header">
+                <h2><i data-lucide="bar-chart-3"></i> Synthesis Complete.</h2>
+                <div class="button-group">
+                    <button class="btn-secondary" id="reset-btn"><i data-lucide="rotate-ccw"></i> New Audit</button>
+                    <button class="btn-primary" id="export-btn"><i data-lucide="download"></i> Export PDF</button>
+                </div>
+            </header>
+
+            <div id="pdf-content-wrapper"> <!-- Wrapper for PDF Export -->
+                <div class="summary-card glass-panel executive">
+                    <i data-lucide="brain-circuit" class="neon-icon"></i>
+                    <h2>Neural Executive Summary</h2>
+                    <p id="insight-executive">Analyzing data points...</p>
+                </div>
+                
+                        <span class="value">--</span>
+                        <span class="label">Health Score</span>
+                    </div>
+                    <ul class="action-list" id="insight-seo">
+                        <li>Awaiting data...</li>
+                    </ul>
+                </div>
+
+                <!-- Google Ads Card -->
+                <div class="result-card glass-panel">
+                    <div class="card-header">
+                        <i data-lucide="mouse-pointer-click" class="icon-gads"></i>
+                        <h3>Google Ads Strategy</h3>
+                    </div>
+                    <div class="card-metric" id="gads-score">
+                        <span class="value">--</span>
+                        <span class="label">Efficiency Score</span>
+                    </div>
+                    <ul class="action-list" id="insight-gads">
+                        <li>Awaiting data...</li>
+                    </ul>
+                </div>
+
+                <!-- Meta Ads Card -->
+                <div class="result-card glass-panel">
+                    <div class="card-header">
+                        <i data-lucide="facebook" class="icon-meta"></i>
+                        <h3>Meta Ads Creative</h3>
+                    </div>
+                    <div class="card-metric" id="meta-score">
+                        <span class="value">--</span>
+                        <span class="label">Creative Score</span>
+                    </div>
+                    <ul class="action-list" id="insight-meta">
+                        <li>Awaiting data...</li>
+                    </ul>
+                </div>
+
+                <!-- Organic Social Card -->
+                <div class="result-card glass-panel">
+                    <div class="card-header">
+                        <i data-lucide="instagram" class="icon-social"></i>
+                        <h3>Organic Social Velocity</h3>
+                    </div>
+                    <div class="card-metric" id="social-score">
+                        <span class="value">--</span>
+                        <span class="label">Viral Coefficient</span>
+                    </div>
+                    <ul class="action-list" id="insight-social">
+                        <li>Awaiting data...</li>
+                    </ul>
+                </div>
+
+                <!-- Email Lifecycle Card -->
+                <div class="result-card glass-panel">
+                    <div class="card-header">
+                        <i data-lucide="mail" class="icon-mail"></i>
+                        <h3>Retention & Lifecycle</h3>
+                    </div>
+                    <div class="card-metric" id="email-score">
+                        <span class="value">--</span>
+                        <span class="label">LTV Multiplier</span>
+                    </div>
+                    <ul class="action-list" id="insight-email">
+                        <li>Awaiting data...</li>
+                    </ul>
+                </div>
+
+                <!-- CRO Card -->
+                <div class="result-card glass-panel">
+                    <div class="card-header">
+                        <i data-lucide="zap" class="icon-cro"></i>
+                        <h3>Conversion Rate Optimization</h3>
+                    </div>
+                    <div class="card-metric" id="cro-score">
+                        <span class="value">--</span>
+                        <span class="label">UX Friction Index</span>
+                    </div>
+                    <ul class="action-list" id="insight-cro">
+                        <li>Awaiting data...</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
